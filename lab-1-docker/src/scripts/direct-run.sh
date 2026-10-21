@@ -1,20 +1,22 @@
+#!/usr/bin/env bash
 # Создадим папку bin, в которую сбилдим наш сервис
-mkdir bin
+if [ ! -d bin ]; then
+    mkdir bin
+fi
 
 # Сбилдим сервис и асинхронно запустим его
-go -C src/api build -o ../../bin/api
+if [ ! -f bin/api ]; then
+    go -C src/api build -o ../../bin/api
+fi
+
 bin/api &
 
 # Получим ответ от health endpoint'а сервиса и выведем ps
 echo $(curl -fsS http://localhost:8080/health)
 ps
 
-# Получим ps сервиса, убъём его и удалим папку bin
+# Получим PID сервиса и убъём его
 pid=$(pgrep api)
 
 echo $pid
 kill $pid
-
-rm -rf bin
-
-# Получим воспроизводимый эксперимент по запуску сервиса и его проверке

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Включаем интерфейс loopback и смотрим все интерфейсы
 ip link set dev lo up
 ip a
@@ -8,7 +9,7 @@ hostname isolated-env
 # Выводим имя пользователя и его UID
 whoami
 echo $UID
-# Выводим ps и имя хоста 
+# Выводим ps и имя хоста
 ps
 hostname
 # Запускаем скрипт из первой части

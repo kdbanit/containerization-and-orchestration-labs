@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: api
+  tag: lab2
+  pullPolicy: IfNotPresent
+
+
+service:
+  type: ClusterIP
+  port: 8080
+
+containerPort: 8080
+
+otel:
+  endpoint: "jaeger.monitoring.svc.cluster.local:4317"

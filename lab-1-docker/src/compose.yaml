@@ -1,8 +1,6 @@
 services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    ports:
-      - 8082:8080
     privileged: true
     volumes:
       - /:/rootfs:ro
@@ -13,11 +11,17 @@ services:
     restart: unless-stopped
   prometheus:
     image: prom/prometheus:v3.7.1
-    ports:
-      - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
   api:
     image: api:multi
     cpus: 0.5
@@ -27,3 +31,4 @@ services:
       - "127.0.0.1:8081:8080"
 volumes:
   prometheus_data:
+  grafana_data:

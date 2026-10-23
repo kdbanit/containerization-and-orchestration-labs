@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: api.rules
+      rules:
+        - alert: APIHighErrorRate
+          expr: |
+            100 *
+            sum(rate(http_requests_total{job="monitoring-api",status=~"5.."}[2m]))
+            /
+            clamp_min(
+              sum(rate(http_requests_total{job="monitoring-api"}[2m])),
+              0.000001
+            ) > 10
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High HTTP 5xx error rate"
+            description: "More than 10% of API requests return HTTP 5xx."

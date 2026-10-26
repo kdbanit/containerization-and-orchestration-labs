@@ -449,13 +449,3 @@ Reuse стека Lab 2 в ns `monitoring` (`kube-prometheus-stack`, Loki, Alloy,
 Explore / Prometheus: Rate, Errors %, p95 Duration по `job="shop-api"` (RED).
 
 ![grafana RED](screenshots/part5-grafana-red.png)
-
----
-
-## Чеклист сдачи
-
-- [x] код `api`/`worker` + Dockerfile
-- [x] бандл политик (≥5) + bad-манифесты
-- [x] Helm chart `charts/shop` (+ ServiceMonitor / PrometheusRule)
-- [x] README Part 1: выбор движка + обоснования правил
-- [x] Part 2–5 в README + скриншоты (part0–part5)

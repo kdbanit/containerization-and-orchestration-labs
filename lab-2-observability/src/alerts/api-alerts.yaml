@@ -24,3 +24,32 @@ spec:
           annotations:
             summary: "High HTTP 5xx error rate"
             description: "More than 10% of API requests return HTTP 5xx."
+        
+        - alert: APIHighLatency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(http_request_duration_seconds_bucket{job="monitoring-api"}[5m])
+              )
+            ) > 2
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High API response latency"
+            description: "API p95 response time exceeds 2 seconds."
+
+        - alert: APIDown
+          expr: |
+            (
+              up{job="monitoring-api",namespace="default"} == 0
+            )
+            or
+            absent(up{job="monitoring-api",namespace="default"})
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API is unavailable"
+            description: "The monitoring-api service is unreachable or has no active scrape targets."

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad-no-labels
+  namespace: default
+  # labels специально нет
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      resources:
+        limits:
+          cpu: "100m"
+          memory: "128Mi"

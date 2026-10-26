@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-api
+  labels:
+    # kube-prometheus-stack selects ServiceMonitors with release=<kps release name>
+    release: monitoring
+    app.kubernetes.io/name: api
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

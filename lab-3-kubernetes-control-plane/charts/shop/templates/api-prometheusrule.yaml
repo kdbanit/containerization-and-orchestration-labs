@@ -1,0 +1,57 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-api-alerts
+  labels:
+    # picked up by Prometheus from kube-prometheus-stack
+    release: monitoring
+    app.kubernetes.io/name: api
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  groups:
+    - name: shop-api.rules
+      rules:
+        # 1) API не отвечает Prometheus scrape (поды/сеть/сервис мертвы)
+        - alert: ShopApiDown
+          expr: |
+            up{job="{{ .Release.Name }}-api", namespace="{{ .Release.Namespace }}"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "shop-api is down (scrape failed)"
+            description: "Prometheus cannot scrape shop-api in {{ .Release.Namespace }} for >1m."
+
+        # 2) Доля 5xx среди запросов > 10%
+        - alert: ShopApiHighErrorRate
+          expr: |
+            100 *
+            sum(rate(http_requests_total{job="{{ .Release.Name }}-api", namespace="{{ .Release.Namespace }}", status=~"5.."}[2m]))
+            /
+            clamp_min(
+              sum(rate(http_requests_total{job="{{ .Release.Name }}-api", namespace="{{ .Release.Namespace }}"}[2m])),
+              0.000001
+            ) > 10
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "shop-api high HTTP 5xx rate"
+            description: "More than 10% of shop-api requests return 5xx for >1m."
+
+        # 3) p95 latency выше 1s
+        - alert: ShopApiHighLatency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(http_request_duration_seconds_bucket{job="{{ .Release.Name }}-api", namespace="{{ .Release.Namespace }}"}[5m])
+              )
+            ) > 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "shop-api p95 latency > 1s"
+            description: "p95 request latency for shop-api exceeds 1s for >2m."

@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-trusted-registry
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: trusted-images
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - local-path-storage
+                - kyverno
+                - cnpg-system
+                - monitoring
+      validate:
+        message: "Images must come from a trusted registry (docker.io/, registry.k8s.io/, ghcr.io/, or shop/)"
+        pattern:
+          spec:
+            containers:
+              - image: "docker.io/* | registry.k8s.io/* | ghcr.io/* | shop/*"

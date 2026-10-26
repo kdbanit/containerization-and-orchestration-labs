@@ -1,0 +1,33 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: require-app-labels
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - local-path-storage
+                - kyverno
+                - cnpg-system
+                - monitoring
+      validate:
+        message: >-
+          Pod must have labels app.kubernetes.io/name,
+          app.kubernetes.io/part-of and app.kubernetes.io/managed-by
+        pattern:
+          metadata:
+            labels:
+              app.kubernetes.io/name: "?*"
+              app.kubernetes.io/part-of: "?*"
+              app.kubernetes.io/managed-by: "?*"

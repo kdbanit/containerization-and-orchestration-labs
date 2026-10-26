@@ -1,0 +1,47 @@
+api:
+  replicaCount: 4
+  image: shop/api:v3
+  # v3: /metrics (RED) for Part 5
+  healthFail: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+worker:
+  replicaCount: 2
+  image: shop/worker:v1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# Service name from CloudNativePG: <cluster>-rw
+databaseURL: "postgres://shop:shop@shop-postgres-rw:5432/shop?sslmode=disable"
+
+postgres:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  database: shop
+  owner: shop
+  credentials:
+    username: shop
+    password: shop
+  storage:
+    size: 1Gi
+    # kind default SC is named "standard" (provisioner local-path), not "local-path"
+    storageClass: standard
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+

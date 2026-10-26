@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: no-latest
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - local-path-storage
+                - kyverno
+                - cnpg-system
+                - monitoring
+      validate:
+        message: "Using the latest tag is not allowed; pin an explicit image tag"
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"

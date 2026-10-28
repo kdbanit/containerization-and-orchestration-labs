@@ -1,0 +1,72 @@
+# Standalone mode — single n8n pod with SQLite, no external dependencies.
+# Suitable for development, testing, or small-scale production use.
+# Data is stored in a PersistentVolumeClaim; no PostgreSQL or Redis required.
+
+queueMode:
+  enabled: false
+
+database:
+  type: sqlite
+  useExternal: false
+
+redis:
+  enabled: false
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+# You must still provide an encryption key for credential storage.
+# Create a secret: kubectl create secret generic n8n-secrets \
+#   --from-literal=N8N_ENCRYPTION_KEY=$(openssl rand -hex 32) \
+#   --from-literal=N8N_HOST=localhost \
+#   --from-literal=N8N_PORT=5678 \
+#   --from-literal=N8N_PROTOCOL=http
+secretRefs:
+  existingSecret: "n8n-secrets"
+
+config:
+  extraEnv:
+    - name: N8N_METRICS
+      value: "true"
+
+    - name: N8N_METRICS_INCLUDE_DEFAULT_METRICS
+      value: "true"
+
+    - name: N8N_METRICS_INCLUDE_MESSAGE_EVENT_BUS_METRICS
+      value: "true"
+
+    - name: N8N_METRICS_INCLUDE_WORKFLOW_ID_LABEL
+      value: "true"
+
+    - name: N8N_METRICS_INCLUDE_WORKFLOW_INFO
+      value: "true"
+
+    - name: N8N_METRICS_INCLUDE_WEBHOOK_METRICS
+      value: "true"
+
+# ServiceMonitor создаётся вместе с релизом. Лейбл release больше не нужен:
+# Prometheus отбирает мониторы по пустому селектору, а гейт стоит на лейбле
+# namespace (agent помечен monitoring=true).
+extraObjects:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: n8n
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: n8n
+          app.kubernetes.io/instance: n8n
+      endpoints:
+        - port: http
+          path: /metrics
+          interval: 30s
+
+resources:
+  main:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      memory: 1Gi

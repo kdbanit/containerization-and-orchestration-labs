@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: n8n-agent-alerts
+  namespace: monitoring
+  labels:
+    release: kps
+spec:
+  groups:
+    - name: n8n
+      rules:
+        - alert: N8NDown
+          expr: |
+            up{job="n8n-main"} == 0 or absent(up{job="n8n-main"})
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "n8n недоступен для мониторинга"
+
+        - alert: N8NWorkflowExecutionFailureRate
+          expr: |
+            (
+              sum(rate(n8n_workflow_execution_duration_seconds_count{mode="webhook",status="failed"}[30m]))
+              /
+              sum(rate(n8n_workflow_execution_duration_seconds_count{mode="webhook"}[30m]))
+            ) > 0.2
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Больше 20% workflow завершаются ошибкой"
+
+        - alert: N8NNoTraffic
+          expr: |
+            (
+              sum(increase(n8n_webhook_request_duration_seconds_count{status_code="200"}[4h])) == 0
+            )
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "n8n не принял ни одного обращения за 4 часа"

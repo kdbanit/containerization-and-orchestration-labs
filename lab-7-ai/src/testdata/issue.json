@@ -1,0 +1,63 @@
+{
+  "action": "opened",
+  "issue": {
+    "id": 2567890102,
+    "node_id": "I_kwDOQe7bIc6Y9AQy",
+    "number": 2,
+    "title": "[Postgres] Запрос висит и не завершается",
+    "user": {
+      "login": "puck3",
+      "id": 1904551,
+      "node_id": "MDQ6VXNlcjE5MDQ1NTE=",
+      "type": "User",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 8100000001,
+        "node_id": "LA_kwDOQe7bIc8AAAAB4t0Q",
+        "name": "triage",
+        "color": "FBCA04",
+        "default": false,
+        "description": "Первичный разбор"
+      }
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [],
+    "milestone": null,
+    "comments": 0,
+    "created_at": "2026-10-28T08:55:12Z",
+    "updated_at": "2026-10-28T08:55:12Z",
+    "closed_at": null,
+    "author_association": "MEMBER",
+    "body": "### Database Instance\n\npg-test\n\n### Что происходит\n\nОперация обновления заказов висит уже 20 минут и не завершается. Приложение ждёт ответа и падает по таймауту.\n\nСоединение при этом живое: база отвечает на другие запросы, ошибок подключения нет.\n\n### Когда началось\n\n2026-10-28 11:40 MSK\n\n### Затронуто\n\nМоя команда\n\n### Что менялось перед этим\n\nНичего не меняли. Вечером был обычный деплой приложения, но он не затрагивал запросы к этой таблице.\n\n### Приложение\n\norders-api, пул соединений HikariCP, maxPoolSize=10\n\n### Что уже проверено\n\nПерезапустили приложение — не помогло, зависший запрос остался\n",
+    "html_url": "https://github.com/dbaas-test/support/issues/2",
+    "url": "https://api.github.com/repos/dbaas-test/support/issues/2",
+    "comments_url": "https://api.github.com/repos/dbaas-test/support/issues/2/comments",
+    "repository_url": "https://api.github.com/repos/dbaas-test/support"
+  },
+  "repository": {
+    "id": 1102416393,
+    "node_id": "R_kgDOQe7bIQ",
+    "name": "support",
+    "full_name": "dbaas-test/support",
+    "private": false,
+    "owner": {
+      "login": "dbaas-test",
+      "id": 20513377,
+      "type": "Organization",
+      "site_admin": false
+    },
+    "html_url": "https://github.com/dbaas-test/support",
+    "default_branch": "main"
+  },
+  "sender": {
+    "login": "puck3",
+    "id": 1904551,
+    "node_id": "MDQ6VXNlcjE5MDQ1NTE=",
+    "type": "User",
+    "site_admin": false
+  }
+}

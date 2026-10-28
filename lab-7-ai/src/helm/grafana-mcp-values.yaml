@@ -1,0 +1,55 @@
+grafana:
+  url: http://kps-grafana.monitoring.svc.cluster.local
+  apiKeySecret:
+    name: grafana-mcp
+    key: api-key
+
+disableWrite: true
+
+command: ["/app/mcp-grafana"]
+
+extraArgs:
+  - "--transport=streamable-http"
+  - "--address=0.0.0.0:8000"
+  - "--enabled-tools=prometheus,loki"
+  - "--allowed-hosts=*"
+  - "--usage-stats=disabled"
+
+envValueFrom:
+  MCP_GRAFANA_SERVER_TOKEN:
+    secretKeyRef:
+      name: grafana-mcp
+      key: server-token
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 20
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 500m
+  limits:
+    memory: 256Mi
+
+metrics:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: kps

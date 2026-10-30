@@ -1,0 +1,12 @@
+hubble:
+  enabled: true
+  ui:
+    enabled: true
+  relay:
+    enabled: true
+  metrics:
+    enabled:
+      - dns:labelsContext=source_namespace,source_app,destination_namespace,destination_app
+      - drop:labelsContext=source_namespace,source_app,destination_namespace,destination_app
+      - tcp:labelsContext=source_namespace,source_app,destination_namespace,destination_app
+      - flow:labelsContext=source_namespace,source_app,destination_namespace,destination_app

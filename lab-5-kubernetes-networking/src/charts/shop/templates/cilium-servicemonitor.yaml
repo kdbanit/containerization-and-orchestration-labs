@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-cilium
+  labels:
+    # kube-prometheus-stack selects ServiceMonitors with release=<kps release name>
+    release: kps
+    app.kubernetes.io/name: cilium
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      k8s-app: hubble 
+  endpoints:
+    - port: hubble-metrics
+      path: /metrics
+      interval: 15s

@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-network-alerts
+  labels:
+    release: kps
+    app.kubernetes.io/name: shop
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  groups:
+    - name: shop-network.rules
+      rules:
+        - alert: ShopAllowedPathDenied
+          expr: |
+            (
+              sum by (source_app, destination_app) (
+                rate(hubble_drop_total{reason="POLICY_DENIED", destination_namespace="{{ .Release.Namespace }}",
+                     destination_app="postgres", source_app=~"api|worker"}[5m])
+              )
+              or
+              sum by (source_app, destination_app) (
+                rate(hubble_drop_total{reason="POLICY_DENIED", destination_namespace="{{ .Release.Namespace }}",
+                     destination_app="api", source_app=~"client|prometheus"}[5m])
+              )
+            ) > 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'policy denied allowed path {{ "{{ $labels.source_app }}" }} -> {{ "{{ $labels.destination_app }}" }}'
+
+        - alert: ShopTcpReset
+          expr: |
+            sum by (source_app, destination_app) (
+              rate(hubble_tcp_flags_total{flag="RST", destination_namespace="{{ .Release.Namespace }}", source_app!=""}[5m])
+            ) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'TCP reset {{ "{{ $labels.source_app }}" }} -> {{ "{{ $labels.destination_app }}" }}'
+
+        - alert: ShopDnsServerFailure
+          expr: |
+            sum by (namespace, pod) (
+              rate(coredns_dns_responses_total{rcode="SERVFAIL"}[5m])
+            ) > 0
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'CoreDNS SERVFAIL on {{ "{{ $labels.namespace }}" }}/{{ "{{ $labels.pod }}" }}'

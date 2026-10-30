@@ -1,0 +1,56 @@
+# Kind single-node: lighter defaults for Lab 2 reuse
+prometheus:
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
+    retention: 6h
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        memory: 1Gi
+    storageSpec: {}
+
+grafana:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+  persistence:
+    enabled: false
+  adminPassword: admin
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 500Mi
+      limits:
+        memory: 500Mi
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      memory: 200Mi

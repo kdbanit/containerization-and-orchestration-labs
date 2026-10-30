@@ -1,0 +1,33 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  instances: {{ .Values.postgres.instances }}
+
+  imageName: {{ .Values.postgres.imageName | quote }}
+
+  # Labels on Pods created by the operator (Kyverno matches Pods).
+  inheritedMetadata:
+    labels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/part-of: shop
+      app.kubernetes.io/managed-by: cloudnative-pg
+
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgres.database | quote }}
+      owner: {{ .Values.postgres.owner | quote }}
+      secret:
+        name: {{ .Release.Name }}-postgres-credentials
+
+  storage:
+    size: {{ .Values.postgres.storage.size | quote }}
+    storageClass: {{ .Values.postgres.storage.storageClass | quote }}
+
+  resources:
+    {{- toYaml .Values.postgres.resources | nindent 4 }}

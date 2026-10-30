@@ -1,0 +1,93 @@
+api:
+  replicaCount: 4
+  image: shop/api:v3
+  # v3: /metrics (RED) for Part 5
+  healthFail: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  networkPolicy:
+    ingress:
+      - namespace: monitoring
+        matchPodLabels:
+          app.kubernetes.io/name: prometheus
+        ports:
+          - port: 8080
+            protocol: TCP
+      - namespace: default
+        matchPodLabels:
+          app.kubernetes.io/name: client
+        ports:
+          - port: 8080
+            protocol: TCP
+    egress:
+      - matchPodLabels:
+          app.kubernetes.io/name: postgres
+        ports:
+          - port: 5432
+            protocol: TCP
+
+worker:
+  replicaCount: 2
+  image: shop/worker:v1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+  networkPolicy:
+    egress:
+      - matchPodLabels:
+          app.kubernetes.io/name: postgres
+        ports:
+          - port: 5432
+            protocol: TCP
+
+# Service name from CloudNativePG: <cluster>-rw
+databaseURL: "postgres://shop:shop@shop-postgres-rw:5432/shop?sslmode=disable"
+
+postgres:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  database: shop
+  owner: shop
+  credentials:
+    username: shop
+    password: shop
+  storage:
+    size: 1Gi
+    # kind default SC is named "standard" (provisioner local-path), not "local-path"
+    storageClass: standard
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  networkPolicy:
+    ingress:
+      - namespace: cnpg-system
+        matchPodLabels:
+          app.kubernetes.io/name: cloudnative-pg
+        ports:
+          - port: 8000
+            protocol: TCP
+          - port: 5432
+            protocol: TCP
+      - matchPodLabels:
+          app.kubernetes.io/name: api
+        ports:
+          - port: 5432
+            protocol: TCP
+      - matchPodLabels:
+          app.kubernetes.io/name: worker
+        ports:
+          - port: 5432
+            protocol: TCP

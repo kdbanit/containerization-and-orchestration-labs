@@ -1,0 +1,14 @@
+# Overrides for CloudNativePG operator so Kyverno policies accept the Deployment.
+# Do not vendor the upstream chart — only this values file lives in the repo.
+
+podLabels:
+  app.kubernetes.io/name: cloudnative-pg
+  app.kubernetes.io/part-of: shop-platform
+  app.kubernetes.io/managed-by: Helm
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+  limits:
+    memory: 200Mi

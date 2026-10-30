@@ -7,7 +7,7 @@
 1. [Лаба 1. ~~Вскрываем~~ Изучаем Docker](lab-1-docker/README.md)
 2. [Лаба 2. А как следить-то?](lab-2-observability/README.md)
 3. [Лаба 3. Собираем платформу для нашего ~~AI B2C~~ сервиса](lab-3-kubernetes-control-plane/)
-4. [Лаба 4. Сыграем в голодные игры?](#not-found)
+4. [Лаба 4. Сыграем в голодные игры?](lab-4-scheduling-resources/)
 5. [Лаба 5. Плетём zero-trust сети вокруг сервиса](#not-found)
 6. [Лаба 6. Деплоим как на проде](#not-found)
 7. [Лаба 7. Как приручить агента?](#not-found)

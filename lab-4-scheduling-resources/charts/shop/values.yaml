@@ -1,0 +1,93 @@
+api:
+  replicaCount: 2
+  image: shop/api:v3
+  # v3: /metrics (RED) for Lab 3 Part 5 / Lab 4
+  healthFail: false
+  # Part 5: Guaranteed = requests == limits (числа из Part 3 / krr)
+  priorityClassName: shop-critical
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  # Part 8: krr дал 200m; под SLA p95≤400ms (hey -c10) подняли Guaranteed до 500m
+  resources:
+    requests:
+      cpu: 500m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 100Mi
+
+worker:
+  replicaCount: 1
+  image: shop/worker:v1
+  # Part 3: krr floors; без PriorityClass (default 0)
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+
+# Lab 4 Part 1/4: topologySpreadConstraints | podAntiAffinity
+spreading:
+  mechanism: topologySpreadConstraints
+  enabled: true
+  maxSkew: 1
+  whenUnsatisfiable: DoNotSchedule
+
+# After Part 7: mild sacrificial load for Part 8 SLA (не троттлим хост).
+batch:
+  replicaCount: 1
+  image: shop/batch:v1
+  cpuWorkers: "1"
+  memoryMiB: "64"
+  priorityClassName: shop-batch-low
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# Service name from CloudNativePG: <cluster>-rw
+databaseURL: "postgres://shop:shop@shop-postgres-rw:5432/shop?sslmode=disable"
+
+postgres:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  database: shop
+  owner: shop
+  credentials:
+    username: shop
+    password: shop
+  storage:
+    size: 1Gi
+    # kind default SC is named "standard" (provisioner local-path), not "local-path"
+    storageClass: standard
+  # Part 5: Guaranteed + high PriorityClass; PDB через CNPG enablePDB.
+  # 140Mi (krr) оказалось впритык — CNPG не проходил readiness (как у peer:
+  # подняли до рабочего минимума, requests=limits сохраняем).
+  priorityClassName: shop-critical
+  enablePDB: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Part 5: PriorityClass (cluster-scoped)
+priorityClasses:
+  critical:
+    name: shop-critical
+    value: 1000000
+    preemptionPolicy: PreemptLowerPriority
+    description: "Critical path (api, postgres): preempts lower-priority pods"
+  batch:
+    name: shop-batch-low
+    value: -1000
+    preemptionPolicy: Never
+    description: "Background batch: below default priority, never preempts others"

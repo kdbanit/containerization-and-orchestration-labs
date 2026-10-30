@@ -1,0 +1,74 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-api-alerts
+  labels:
+    # picked up by Prometheus from kube-prometheus-stack
+    release: monitoring
+    app.kubernetes.io/name: api
+    app.kubernetes.io/part-of: shop
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  groups:
+    - name: shop-sla.rules
+      rules:
+        # Part 9 / SLA: p95 POST /order > 300ms
+        - alert: ShopOrderLatencyHigh
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(http_request_duration_seconds_bucket{
+                  namespace="{{ .Release.Namespace }}",
+                  job="{{ .Release.Name }}-api",
+                  route="/order"
+                }[2m])
+              )
+            ) > 0.4
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "shop POST /order p95 > 400ms"
+            description: "Order-path p95 latency exceeds the Part 8 SLA (400ms) for >2m."
+
+        # Part 9 / SLA: 5xx share on /order
+        - alert: ShopOrderErrorRateHigh
+          expr: |
+            100 *
+            sum(rate(http_requests_total{
+              namespace="{{ .Release.Namespace }}",
+              job="{{ .Release.Name }}-api",
+              route="/order",
+              status=~"5.."
+            }[2m]))
+            /
+            clamp_min(
+              sum(rate(http_requests_total{
+                namespace="{{ .Release.Namespace }}",
+                job="{{ .Release.Name }}-api",
+                route="/order"
+              }[2m])),
+              0.000001
+            ) > 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "shop POST /order 5xx rate > 1%"
+            description: "More than 1% of /order requests are 5xx — SLA breach."
+
+        # Part 9: sacrificial batch stuck Pending (scarcity / preemption aftermath)
+        - alert: ShopBatchPending
+          expr: |
+            kube_pod_status_phase{
+              namespace="{{ .Release.Namespace }}",
+              pod=~"{{ .Release.Name }}-batch-.*",
+              phase="Pending"
+            } == 1
+          for: 1m
+          labels:
+            severity: info
+          annotations:
+            summary: "shop-batch pod Pending >1m"
+            description: "Background batch cannot schedule — expected under Part 6 scarcity; critical path should stay up."

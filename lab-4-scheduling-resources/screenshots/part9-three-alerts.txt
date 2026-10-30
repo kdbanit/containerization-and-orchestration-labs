@@ -1,0 +1,3 @@
+ShopOrderLatencyHigh — shop POST /order p95 > 400ms
+ShopOrderErrorRateHigh — shop POST /order 5xx rate > 1%
+ShopBatchPending — shop-batch pod Pending >1m

@@ -1,0 +1,21 @@
+# Lab 4: tight 2-node kind cluster (control-plane + worker).
+# Empty taints on control-plane so topologySpread can place api on both nodes.
+# Worker: memory eviction threshold for Part 7 (kind otherwise disables memory.available).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          taints: []
+  - role: worker
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            # Part 7: kind defaults omit memory.available; raise threshold so
+            # a ~3.5Gi batch (request 128Mi) trips eviction without OOMKilling the host.
+            eviction-hard: "memory.available<11Gi,nodefs.available<1Gi"
